@@ -20,7 +20,8 @@ async function logInUser() {
   const request = await response.text();
 
   if (request != 'FAIL' ){
-    localStorage.token = request;
+    // Añadimos la info a localStorage, al token le añadimos el standard BEARER
+    localStorage.token = 'Bearer ' + request;
     localStorage.email = datos.email;
     window.location.href = 'users.html';
   } else {

@@ -1,16 +1,11 @@
 package com.usersproyect.users.dao;
 
-import java.util.List;
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.usersproyect.users.Models.User;
 
-public interface userDAO {
+public interface userDAO extends JpaRepository<User, Integer> {
 
-    List<User> getUsers ();
-
-    void delete(int id);
-
-    void createUser(User usuario);
-
-    User getLoginUser(User usuario);
 }
