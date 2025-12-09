@@ -27,28 +27,27 @@ function getHeaderAuthorization (){
 //FUNCION FETCH QUE CARGA USUARIOS
 async function loadUsers() {
   console.log('ejecuto CARGA');
-  const request = await fetch('/api/app/users', { //marca el método que llama en el controlador GETUSERS
-    method: 'GET', //usamos get porque va a devolver datos
+  const request = await fetch('/api/app/users', { //marca el método que llama en el controlador, GETUSERS
+    method: 'GET', //usamos GET porque va a devolver datos
     headers: getHeaderAuthorization()
     
   });
   const users = await request.json();
   
-  console.log(users);
-  console.log("tipo USERS", typeof users);
-  
   
   let tbody = document.querySelector('#users tbody');
   tbody.innerHTML = ""; // Limpiamos contenido del HTML
   // Usamos un foreach para sacar todo lo que tenemos dentro de users y por cada elemento (user)
-  // concatenamos una fila más
-  console.log('bakend', users);
-  console.log('Tipo', typeof users);
-  
-  
+  // concatenamos una fila más  
   users.forEach(user => {
     let deleteButton = `<a href=# onclick="deleteUser(${user.id})" class="btn btn-danger btn-circle btn-sm">
                           <i class="fas fa-trash"></i>
+                        </a>`;
+    let viewButton = `<a href="user-view.html?id=${user.id}" class="btn btn-info btn-circle btn-sm">
+                          <i class="fas fa-info"></i>
+                        </a>`;
+    let editButton = `<a href="user-edit.html?id=${user.id}" class="btn btn-warning btn-circle btn-sm">
+                          <i class="fas fa-edit"></i>
                         </a>`;
     // En cada fila que construimos con HTML le injectamos el atributo del Objeto de la List
     let userHTML = `
@@ -58,7 +57,7 @@ async function loadUsers() {
       <td>${user.email}</td>
       <td>${user.telefono}</td>
       <td>
-        ${deleteButton}
+        ${deleteButton} ${viewButton} ${editButton}
       </td>
     </tr>
     `
@@ -82,4 +81,3 @@ async function deleteUser (id) {
   });
   location.reload(); // Recarga la página
 }
-

@@ -1,6 +1,7 @@
 package com.usersproyect.users.Controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +59,21 @@ public class UserController {
     }
     
     // CURD REAL
+
+    @GetMapping("/app/user/{id}")
+    public ResponseEntity<User> GetUser (@RequestHeader(value="Authorization") String token, @PathVariable int id){
+        if (!validateToken(token)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Optional<User> user = userDAO.findById(id);
+
+        if(user.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(user.get());
+    }
     
     @GetMapping("/app/users")
     // Pedimos como parametro el token de autorización que trae en el Header
@@ -70,26 +87,14 @@ public class UserController {
         return ResponseEntity.ok(userDAO.findAll());
     }
 
-    @GetMapping("/app/users/{id}")
-    public ResponseEntity<User> GetUserById (@PathVariable int id){
-        if (!userDAO.existsById(id)){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-       
-        return userDAO.findById(id)
-        .map(ResponseEntity::ok)
-        .orElseGet(()->ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
     @PostMapping("/app/user")
     public ResponseEntity<User> CreateUser (@RequestBody User usuario) {
     
         Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
         char[] passwordChars = usuario.getPassword().toCharArray();
-        String hash = argon2.hash(1, 1024, 1, passwordChars);
-        usuario.setPassword(hash);
-        // Guardamos el usuario que traemos en el body
+        String hashPassword = argon2.hash(1, 1024, 1, passwordChars);
+        usuario.setPassword(hashPassword);
+        // Guardamos el usuario que traemos en el body con la contraseña hasheada
         userDAO.save(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -103,6 +108,36 @@ public class UserController {
             userDAO.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    
+     @PutMapping("/app/user/{id}")
+     public ResponseEntity<User> EditUser ( @RequestHeader(value = "Authorization") 
+                                            String token, 
+                                            @RequestBody User user,
+                                            @PathVariable int id){
+                 if (!validateToken(token)){
+                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                 }
+                 Optional<User> savedUser = userDAO.findById(id);
+
+                 if(savedUser.isEmpty()){
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                 }
+
+                 User updatedUser = savedUser.get();
+                 updatedUser.setNombre(user.getNombre());
+                 updatedUser.setApellido(user.getApellido());
+                 updatedUser.setTelefono(user.getTelefono());
+                 updatedUser.setEmail(user.getEmail());
+
+                 userDAO.save(updatedUser);
+
+                 return ResponseEntity.ok(updatedUser);
+     }
+    
+   
+    
+   
 
 
     // MÉTODO LOGIN
